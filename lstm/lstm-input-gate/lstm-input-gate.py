@@ -10,5 +10,5 @@ def input_gate(h_prev: np.ndarray, x_t: np.ndarray,
     # YOUR CODE HERE
     hx = np.concat([h_prev, x_t], axis=1)
     i_t = sigmoid(hx @ W_i.T + b_i)
-    C_t = np.tanh(hx @ W_c.T + b_c)
-    return i_t, C_t
+    Ctilde_t = np.tanh(hx @ W_c.T + b_c)
+    return i_t, Ctilde_t
