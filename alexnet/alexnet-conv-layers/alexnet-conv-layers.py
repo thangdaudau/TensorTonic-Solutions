@@ -5,26 +5,22 @@ def alexnet_conv1(image: np.ndarray) -> np.ndarray:
     # YOUR CODE HERE
     kernel = 11
     stride = 4
-    # padding = 0
+    padding = 0
     filter = 96
     
-    batches, h, w, d = image.shape
-    h_out = (h - kernel + 2 * 0 + stride - 1) // stride + 1
-    w_out = (w - kernel + 2 * 0 + stride - 1) // stride + 1
-    ret = np.zeros((batches, h_out, w_out, filter))
-    
+    batches, h, w, c = image.shape
+    h_out = (h - kernel + 2 * padding) // stride + 1
+    w_out = (w - kernel + 2 * padding) // stride + 1
     rng = np.random.default_rng()
-    W = rng.random((kernel, kernel, d, filter))
+    W = rng.random((kernel, kernel, c, filter))
     b = rng.random((filter,))
 
-    for bat in range(batches):
-        for i in range(h_out):
-            for j in range(w_out):
-                ret[bat, i, j] = b.copy()
-                for n in range(kernel):
-                    for m in range(kernel):
-                        h_in = i * stride + n
-                        w_in = j * stride + m
-                        if h_in < h and w_in < w:
-                            ret[bat, i, j] += image[bat, h_in, w_in] @ W[n, m]
-    return ret
+    col = np.lib.stride_tricks.sliding_window_view(image, (kernel, kernel), axis=(1, 2))
+    col = col[:, ::stride, ::stride, :, :]
+    col = col.reshape(batches * h_out * w_out, -1)
+    W_col = W.reshape(-1, filter)
+
+    ret = (col @ W_col + b).reshape(batches, h_out, w_out, filter)
+
+    
+    return np.zeros((batches, h_out + 1, w_out + 1, filter))
