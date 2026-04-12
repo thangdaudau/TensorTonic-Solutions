@@ -5,13 +5,5 @@ def k_means_centroid_update(points, assignments, k):
     Compute new centroids as the mean of assigned points.
     """
     # Write code here
-    points = np.array(points)
-    assignments = np.array(assignments)
-    
-    c = np.unique(assignments)
-    newc = [np.mean(points[assignments == ci], axis=0) for ci in c]
-
-    ret = [[0, 0] for _ in range(k)]
-    for i in range(len(c)):
-        ret[c[i]] = newc[i].tolist()
-    return ret
+    p, a = np.array(points), np.array(assignments)
+    return [p[a == i].mean(0).tolist() if (a == i).any() else [0, 0] for i in range(k)]
