@@ -11,6 +11,8 @@ def decision_tree_split(X, y):
     def Gini(S):
         ySubset = y[S]
         s = ySubset.shape[0]
+        if s == 0:
+            return 0, float('inf')
         is2 = 1 / (s * s)
         c0 = np.count_nonzero(ySubset == 0)
         c1 = s - c0
@@ -27,7 +29,7 @@ def decision_tree_split(X, y):
         for i in range(N - 1):
             idx = index[i]
             nxt = index[i + 1]
-            if y[idx] == y[nxt] or X[idx, j] == X[nxt, j]:
+            if y[idx] == y[nxt]:
                 continue
             currentThreshold = (X[idx, j] + X[nxt, j]) * 0.5
             mask = X[:, j] > currentThreshold
