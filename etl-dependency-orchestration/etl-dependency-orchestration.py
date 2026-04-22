@@ -3,39 +3,48 @@ def schedule_pipeline(tasks, resource_budget):
     Schedule ETL tasks respecting dependencies and resource limits.
     """
     # Write code here
+    inf = 1 << 64
     n = len(tasks)
-    mp = dict((task['name'], i) for i, task in enumerate(tasks))
+    get = lambda s: lambda d: d[s]
+    name = list(map(get('name'), tasks))
+    duration = list(map(get('duration'), tasks))
+    res = list(map(get('resources'), tasks))
+    depend = list(map(get('depends_on'), tasks))
     
     queue = list()
-    done = [False] * n
     t = 0
-    started = [-16456754764] * n
+    ready = [False] * n
+    started = [-inf] * n
     doing = 0
+    done = [False] * n
     
     while any(not d for d in done):
+        
         for i in range(n):
-            if started[i] >= 0 and started[i] + tasks[i]['duration'] <= t and not done[i]:
-                doing -= tasks[i]['resources']
+            if started[i] != -inf and started[i] + duration[i] <= t and not done[i]:
+                doing -= res[i]
                 done[i] = True
-                for task in tasks:
-                    if tasks[i]['name'] in task['depends_on']:
-                        task['depends_on'].remove(tasks[i]['name'])
-        for i, task in enumerate(tasks):
-            if i not in queue and started[i] < 0 and not done[i] and not task['depends_on']:
+                for j in range(n):
+                    if name[i] in depend[j]:
+                        depend[j].remove(name[i])
+        for i in range(n):
+            if not ready[i] and not depend[i]:
+                ready[i] = True
                 queue.append(i)
-        queue.sort(key=lambda i: tasks[i]['name'])
+        
+        queue.sort(key=lambda i: name[i])
         rem = []
         for i in queue:
-            res = tasks[i]['resources']
-            if doing + res <= resource_budget:
+            if doing + res[i] <= resource_budget:
                 started[i] = t
-                doing += res
+                doing += res[i]
                 rem += [i]
         for i in rem:
             queue.remove(i)
-        new_t = 23791631893
+            
+        new_t = inf
         for i in range(n):
-            est = started[i] + tasks[i]['duration']
+            est = started[i] + duration[i]
             new_t = min(new_t, est) if est > t else new_t
         t = new_t
         
